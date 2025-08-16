@@ -53,7 +53,11 @@
 
 <img src="https://github.com/HyeJinSeok/tcp-socket-client-server/blob/main/assets/socket_step.png" alt="소켓 과정" width="500">
 
+<details>
+  <summary> 소켓 인터페이스 함수에 대해 자세히 보고싶다면 클릭!</summary>
 
+  <br>
+  
 **< 서버-클라이언트 공통 >** <br>
 
 - **socket( )** : 소켓(네트워크 통로)을 생성하고 소켓 식별자(FD)를 반환 
@@ -75,12 +79,18 @@
 - **send( ) / recv( )** : 연결된 상대와 바이트 스트림을 주고받음 
 - **write( ) / read( )** 도 쓸 수 있으나, 플래그 등 옵션 사용 제한적 <br><br>
 
-> [!NOTE]
-> **소켓 식별자** (File Descriptor, FD)란? <br><br>
-> 프로세스 안에서 어느 소켓을 가리키는지 지정할 때 쓰임 <br>
-> 정수 번호(예: 3, 4, 5…) 형태로 반환됨, 로컬 **커널** 내부 식별자 역할
+※ **소켓 식별자** (File Descriptor, FD)란? <br>
+
+
+프로세스 안에서 어느 소켓을 가리키는지 지정할 때 쓰임 <br>
+정수 번호(예: 3, 4, 5…) 형태로 반환되며, 로컬 **커널** 내부 식별자 역할
+
+---
+
+</details>
 
 <br>
+  
 
 ### ③ 이 프로젝트에서의 적용 방식
 
@@ -133,3 +143,123 @@
 <br><br>
 
 ## 🔹프로젝트 과정
+
+<br>
+
+### 1. VirtualBox로 Ubuntu VM 생성
+
+
+```
+# 패키지 목록 최신화
+sudo apt update && sudo apt upgrade -y
+
+# OpenSSH 서버 설치
+sudo apt install openssh-server -y
+
+# SSH 서비스 상태 확인
+sudo systemctl status ssh
+```
+
+<img src="https://github.com/HyeJinSeok/tcp-socket-client-server/blob/main/assets/port-forwarding.png" width="700"> 
+
+<br>
+
+### 2. PuTTY로 SSH 접속
+
+
+```
+호스트 IP: 127.0.0.1
+
+포트: Ubuntu VM 포트포워딩에서 지정한 포트 (예: 2222)
+
+유저명 / 비밀번호 입력 후 접속
+```
+
+<img src="https://github.com/HyeJinSeok/tcp-socket-client-server/blob/main/assets/PuTTY.png" width="500">
+
+
+<br>
+
+### 3. server-side / client-side 디렉터리 생성
+
+
+```
+# 테스트 시 PuTTY 창 2개 띄우기
+
+mkdir server-side
+mkdir client-side 
+```
+
+<img src="https://github.com/HyeJinSeok/tcp-socket-client-server/blob/main/assets/server-client.png" width="900">
+
+<br>
+
+### 4. 디렉터리에 소스파일 생성 및 작성
+
+
+🔗 [server.c](https://github.com/HyeJinSeok/tcp-socket-client-server/blob/main/server.c)
+
+🔗 [client.c](https://github.com/HyeJinSeok/tcp-socket-client-server/blob/main/client.c)
+
+
+```
+# 서버 측
+cd server-side
+nano server.c
+gcc server.c -o server
+
+# 클라이언트 측
+cd client-side
+nano client.c
+gcc client.c -o client
+```
+
+<br>
+
+### 5. client-side에 myfiles 디렉터리 및 파일 생성
+
+
+```
+cd client-side
+
+mkdir myfiles && cd myfiles
+
+echo "이것은 첫 번째 파일입니다." > file1.txt
+echo "두 번째 파일의 내용입니다." > file2.txt
+echo "세 번째 파일의 내용입니다." > file3.txt
+```
+
+
+<img src="https://github.com/HyeJinSeok/tcp-socket-client-server/blob/main/assets/client2.png" width="700"> 
+
+<br>
+
+### 6. server-side에서 서버 실행
+
+<img src="https://github.com/HyeJinSeok/tcp-socket-client-server/blob/main/assets/server1.png" width="700"> 
+
+<br>
+
+### 7. client-side에서 서버 측으로 myfiles 전송
+
+<img src="https://github.com/HyeJinSeok/tcp-socket-client-server/blob/main/assets/client1.png" width="700"> 
+
+<br>
+
+### 8. server-side에서 수신 확인
+
+<img src="https://github.com/HyeJinSeok/tcp-socket-client-server/blob/main/assets/server2.png" width="700"> 
+
+
+<img src="https://github.com/HyeJinSeok/tcp-socket-client-server/blob/main/assets/server3.png" width="700"> 
+
+<br>
+
+## 🔹결과 분석
+
+<br>
+
+✳️ 서버가 디렉토리명 수신 → 디렉토리 생성/이동 → 파일명/내용 수신 → ACK 응답 흐름대로 동작함
+
+
+✳️ 작은 텍스트 파일 3개 / 로컬 호스트 전송에서는 네트워크 지연이 거의 없고, 핸드셰이크(ACK) 오버헤드가 영향 줄 가능성 있음
